@@ -22,6 +22,7 @@ import { AnnouncementsPage } from '@/pages/AnnouncementsPage'
 import { DiscussionsPage } from '@/pages/DiscussionsPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { UsersPage } from '@/pages/UsersPage'
+import { UserProfilePage } from '@/pages/UserProfilePage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { UploadResourcesPage } from '@/pages/UploadResourcesPage'
 import { ProfilePage } from '@/pages/ProfilePage'
@@ -75,6 +76,7 @@ function AppRoutes() {
         <Route path="discussions" element={<DiscussionsPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="users/:userId" element={<UserProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="upload-resources" element={<UploadResourcesPage />} />
         <Route path="profile" element={<ProfilePage />} />

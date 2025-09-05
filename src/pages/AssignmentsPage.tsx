@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { FilterBar, FilterConfig } from '@/components/ui/FilterBar'
 import { FileText, Calendar, Clock, CheckCircle, AlertCircle, Eye, Edit, Users } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -77,8 +78,61 @@ const mockAssignments = [
 
 export function AssignmentsPage() {
   const [assignments] = useState(mockAssignments)
+  const [filters, setFilters] = useState<Record<string, any>>({})
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin' || user?.role === 'instructor'
+
+  // Filter configuration
+  const filterConfig: FilterConfig[] = [
+    {
+      key: 'search',
+      label: 'Search',
+      type: 'search',
+      placeholder: 'Search assignments by title or course...'
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'submitted', label: 'Submitted', count: assignments.filter(a => a.status === 'submitted').length },
+        { value: 'pending', label: 'Pending', count: assignments.filter(a => a.status === 'pending').length },
+        { value: 'overdue', label: 'Overdue', count: assignments.filter(a => a.status === 'overdue').length }
+      ]
+    },
+    {
+      key: 'course',
+      label: 'Course',
+      type: 'select',
+      options: [
+        { value: 'Introduction to Business Management', label: 'Introduction to Business Management', count: assignments.filter(a => a.course === 'Introduction to Business Management').length },
+        { value: 'Digital Marketing Strategies', label: 'Digital Marketing Strategies', count: assignments.filter(a => a.course === 'Digital Marketing Strategies').length },
+        { value: 'Financial Analysis and Reporting', label: 'Financial Analysis and Reporting', count: assignments.filter(a => a.course === 'Financial Analysis and Reporting').length }
+      ]
+    },
+    {
+      key: 'dueDate',
+      label: 'Due Date',
+      type: 'dateRange'
+    }
+  ]
+
+  const filteredAssignments = assignments.filter(assignment => {
+    const matchesSearch = !filters.search || 
+      assignment.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+      assignment.course.toLowerCase().includes(filters.search.toLowerCase()) ||
+      assignment.description.toLowerCase().includes(filters.search.toLowerCase())
+    
+    const matchesStatus = !filters.status || assignment.status === filters.status
+    const matchesCourse = !filters.course || assignment.course === filters.course
+    
+    const matchesDueDate = !filters.dueDate || (
+      (!filters.dueDate.from || new Date(assignment.dueDate) >= new Date(filters.dueDate.from)) &&
+      (!filters.dueDate.to || new Date(assignment.dueDate) <= new Date(filters.dueDate.to))
+    )
+
+    return matchesSearch && matchesStatus && matchesCourse && matchesDueDate
+  })
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -126,8 +180,15 @@ export function AssignmentsPage() {
         )}
       </div>
 
+      {/* Filters */}
+      <FilterBar
+        filters={filterConfig}
+        onFiltersChange={setFilters}
+        searchPlaceholder="Search assignments by title or course..."
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {assignments.map((assignment) => (
+        {filteredAssignments.map((assignment) => (
           <Card key={assignment.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
