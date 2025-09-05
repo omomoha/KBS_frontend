@@ -17,6 +17,8 @@ export interface FilterConfig {
   type: 'select' | 'multiselect' | 'date' | 'dateRange' | 'search'
   options?: FilterOption[]
   placeholder?: string
+  fromKey?: string
+  toKey?: string
 }
 
 interface FilterBarProps {

@@ -81,7 +81,8 @@ export function sanitizeFileName(fileName: string): string {
   return fileName
     .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special characters with underscore
     .replace(/_{2,}/g, '_') // Replace multiple underscores with single
-    .replace(/^_|_$/g, '') // Remove leading/trailing underscores
+    .replace(/^_+|_+$/g, '') // Remove leading/trailing underscores
+    .substring(0, 100) // Limit length
     .toLowerCase()
 }
 
@@ -106,6 +107,21 @@ export function sanitizeInput(input: string): string {
     .replace(/[<>]/g, '') // Remove potential HTML tags
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
+    .replace(/file:/gi, '') // Remove file: protocol
+    .replace(/ftp:/gi, '') // Remove ftp: protocol
+    .replace(/[&<>"']/g, (match) => {
+      const escapeMap: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;'
+      }
+      return escapeMap[match]
+    })
+    .substring(0, 1000) // Limit input length
 }
 
 /**
@@ -126,7 +142,7 @@ export function validateEmail(email: string): ValidationResult {
  * Validates password strength
  */
 export function validatePassword(password: string): ValidationResult {
-  const minLength = 8
+  const minLength = 12
   const hasUpperCase = /[A-Z]/.test(password)
   const hasLowerCase = /[a-z]/.test(password)
   const hasNumbers = /\d/.test(password)
@@ -139,31 +155,70 @@ export function validatePassword(password: string): ValidationResult {
     }
   }
 
-  if (!hasUpperCase) {
+  if (password.length > 128) {
     return {
       isValid: false,
-      error: 'Password must contain at least one uppercase letter'
+      error: 'Password must be less than 128 characters'
     }
   }
 
-  if (!hasLowerCase) {
-    return {
-      isValid: false,
-      error: 'Password must contain at least one lowercase letter'
+  // Check for common patterns
+  const commonPatterns = [
+    /password/i,
+    /123456/,
+    /qwerty/i,
+    /abc123/i,
+    /admin/i,
+    /letmein/i,
+    /welcome/i,
+    /login/i,
+    /user/i,
+    /test/i
+  ]
+
+  for (const pattern of commonPatterns) {
+    if (pattern.test(password)) {
+      return {
+        isValid: false,
+        error: 'Password contains common patterns and is not secure'
+      }
     }
   }
 
-  if (!hasNumbers) {
+  // Check for character variety
+  const varietyCount = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length
+
+  if (varietyCount < 3) {
     return {
       isValid: false,
-      error: 'Password must contain at least one number'
+      error: 'Password must contain at least 3 of: lowercase, uppercase, numbers, special characters'
     }
   }
 
-  if (!hasSpecialChar) {
+  // Check for repeated characters
+  const repeatedChars = /(.)\1{2,}/.test(password)
+  if (repeatedChars) {
     return {
       isValid: false,
-      error: 'Password must contain at least one special character'
+      error: 'Password cannot contain more than 2 consecutive identical characters'
+    }
+  }
+
+  // Check for sequential patterns
+  const sequentialPatterns = [
+    /123/,
+    /abc/i,
+    /qwe/i,
+    /asd/i,
+    /zxc/i
+  ]
+
+  for (const pattern of sequentialPatterns) {
+    if (pattern.test(password)) {
+      return {
+        isValid: false,
+        error: 'Password cannot contain sequential patterns'
+      }
     }
   }
 

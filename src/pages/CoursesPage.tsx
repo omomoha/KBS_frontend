@@ -22,6 +22,7 @@ const mockCourses = [
     status: 'active',
     progress: 75,
     thumbnail: '/api/placeholder/300/200',
+    coverImage: '/api/placeholder/300/200',
     startDate: '2024-01-15',
     endDate: '2024-03-15',
     tags: ['Management', 'Leadership', 'Business']
@@ -38,6 +39,7 @@ const mockCourses = [
     status: 'active',
     progress: 30,
     thumbnail: '/api/placeholder/300/200',
+    coverImage: '/api/placeholder/300/200',
     startDate: '2024-01-20',
     endDate: '2024-03-05',
     tags: ['Marketing', 'Digital', 'Strategy']
@@ -54,6 +56,7 @@ const mockCourses = [
     status: 'upcoming',
     progress: 0,
     thumbnail: '/api/placeholder/300/200',
+    coverImage: '/api/placeholder/300/200',
     startDate: '2024-02-01',
     endDate: '2024-04-15',
     tags: ['Finance', 'Analysis', 'Accounting']
@@ -70,6 +73,7 @@ const mockCourses = [
     status: 'active',
     progress: 60,
     thumbnail: '/api/placeholder/300/200',
+    coverImage: '/api/placeholder/300/200',
     startDate: '2024-01-10',
     endDate: '2024-04-10',
     tags: ['Programming', 'Web Development', 'JavaScript']
@@ -86,6 +90,7 @@ const mockCourses = [
     status: 'upcoming',
     progress: 0,
     thumbnail: '/api/placeholder/300/200',
+    coverImage: '/api/placeholder/300/200',
     startDate: '2024-02-15',
     endDate: '2024-05-30',
     tags: ['Data Science', 'Machine Learning', 'Analytics']
@@ -216,7 +221,8 @@ export function CoursesPage() {
       rating: 0,
       status: 'upcoming',
       progress: 0,
-      thumbnail: '/api/placeholder/300/200',
+      thumbnail: courseData.coverImage ? URL.createObjectURL(courseData.coverImage) : '/api/placeholder/300/200',
+      coverImage: courseData.coverImage ? URL.createObjectURL(courseData.coverImage) : '/api/placeholder/300/200',
       startDate: courseData.startDate,
       endDate: courseData.endDate,
       tags: courseData.tags
@@ -259,16 +265,16 @@ export function CoursesPage() {
         {filteredCourses.map((course) => (
           <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-video bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center overflow-hidden">
-              {course.thumbnail ? (
+              {course.coverImage || course.thumbnail ? (
                 <img 
-                  src={course.thumbnail} 
+                  src={course.coverImage || course.thumbnail} 
                   alt={course.title}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="text-center text-primary-600">
                   <BookOpen className="h-12 w-12 mx-auto mb-2" />
-                  <p className="text-sm">No thumbnail</p>
+                  <p className="text-sm">No cover image</p>
                 </div>
               )}
             </div>

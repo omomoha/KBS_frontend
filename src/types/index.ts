@@ -32,6 +32,7 @@ export interface RegisterData {
   firstName: string
   lastName: string
   role: UserRole
+  department?: string
 }
 
 // Programme and Course Types

@@ -46,7 +46,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <p className="text-secondary-600 mb-6">
                   We're sorry, but something unexpected happened. Please try again.
                 </p>
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                {import.meta.env.DEV && this.state.error && (
                   <details className="mb-6 text-left">
                     <summary className="cursor-pointer text-sm font-medium text-secondary-700 mb-2">
                       Error Details

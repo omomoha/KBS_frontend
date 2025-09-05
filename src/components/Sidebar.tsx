@@ -11,6 +11,9 @@ import {
   Megaphone,
   FileText as TranscriptIcon,
   Upload,
+  Rss,
+  Bell,
+  Download,
 } from 'lucide-react'
 
 import { NavLink, useLocation } from 'react-router-dom'
@@ -39,6 +42,11 @@ const navigation: NavItem[] = [
     label: 'Courses',
     href: '/courses',
     icon: BookOpen,
+  },
+  {
+    label: 'Course Feed',
+    href: '/course-feed',
+    icon: Rss,
   },
   {
     label: 'Assignments',
@@ -78,9 +86,20 @@ const navigation: NavItem[] = [
     roles: ['admin'],
   },
   {
+    label: 'Export Data',
+    href: '/export',
+    icon: Download,
+    roles: ['admin'],
+  },
+  {
     label: 'Settings',
     href: '/settings',
     icon: Settings,
+  },
+  {
+    label: 'Notification Settings',
+    href: '/notification-settings',
+    icon: Bell,
   },
   {
     label: 'Upload Learning Resources',

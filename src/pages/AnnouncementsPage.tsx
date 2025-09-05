@@ -8,11 +8,18 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  Filter
 } from 'lucide-react'
 
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { cn } from '@/utils/cn'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { CreateAnnouncementModal } from '@/components/CreateAnnouncementModal'
 
 // Mock data - in a real app, this would come from an API
 const announcements = [
@@ -83,11 +90,13 @@ const announcements = [
 ]
 
 export function AnnouncementsPage() {
+  const [announcementsList, setAnnouncementsList] = useState(announcements)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCourse, setFilterCourse] = useState<'all' | 'general' | 'course'>('all')
   const [showPinnedOnly, setShowPinnedOnly] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  const filteredAnnouncements = announcements.filter(announcement => {
+  const filteredAnnouncements = announcementsList.filter(announcement => {
     const matchesSearch = announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          announcement.content.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCourse = filterCourse === 'all' || 
@@ -100,6 +109,20 @@ export function AnnouncementsPage() {
   const pinnedAnnouncements = filteredAnnouncements.filter(a => a.isPinned)
   const regularAnnouncements = filteredAnnouncements.filter(a => !a.isPinned)
 
+  const handleCreateAnnouncement = (announcementData: any) => {
+    const newAnnouncement = {
+      id: (announcementsList.length + 1).toString(),
+      ...announcementData,
+      isPinned: false,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    setAnnouncementsList(prev => [newAnnouncement, ...prev])
+    console.log('Announcement created:', newAnnouncement)
+    alert('Announcement created successfully!')
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -110,10 +133,10 @@ export function AnnouncementsPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button className="btn btn-primary btn-md">
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Create Announcement
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -122,12 +145,12 @@ export function AnnouncementsPage() {
         <div className="flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary-400" />
-            <input
+            <Input
               type="text"
               placeholder="Search announcements..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10 w-full"
+              className="pl-10 w-full"
             />
           </div>
         </div>
@@ -135,22 +158,23 @@ export function AnnouncementsPage() {
           <select
             value={filterCourse}
             onChange={(e) => setFilterCourse(e.target.value as any)}
-            className="input"
+            className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">All Announcements</option>
             <option value="general">General</option>
             <option value="course">Course-Specific</option>
           </select>
-          <button
+          <Button
+            variant={showPinnedOnly ? 'default' : 'outline'}
             onClick={() => setShowPinnedOnly(!showPinnedOnly)}
-            className={cn(
-              'btn btn-md',
-              showPinnedOnly ? 'btn-primary' : 'btn-outline'
-            )}
           >
             <Pin className="h-4 w-4 mr-2" />
             Pinned Only
-          </button>
+          </Button>
+          <Button variant="outline">
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+          </Button>
         </div>
       </div>
 
@@ -182,14 +206,23 @@ export function AnnouncementsPage() {
       </div>
 
       {filteredAnnouncements.length === 0 && (
-        <div className="text-center py-12">
-          <Megaphone className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-secondary-900 mb-2">No announcements found</h3>
-          <p className="text-secondary-600">
-            {searchTerm ? 'Try adjusting your search terms' : 'No announcements available at the moment'}
-          </p>
-        </div>
+        <Card>
+          <CardContent className="text-center py-12">
+            <Megaphone className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-secondary-900 mb-2">No announcements found</h3>
+            <p className="text-secondary-600">
+              {searchTerm ? 'Try adjusting your search terms' : 'No announcements available at the moment'}
+            </p>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Create Announcement Modal */}
+      <CreateAnnouncementModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreate={handleCreateAnnouncement}
+      />
     </div>
   )
 }
@@ -240,20 +273,20 @@ function AnnouncementCard({ announcement }: AnnouncementCardProps) {
   }
 
   return (
-    <div className={cn(
-      'card transition-all duration-200',
+    <Card className={cn(
+      'transition-all duration-200 hover:shadow-lg',
       announcement.isPinned && 'border-warning-200 bg-warning-50'
     )}>
-      <div className="card-content">
+      <CardHeader>
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
               {announcement.isPinned && (
                 <Pin className="h-4 w-4 text-warning-600" />
               )}
-              <h3 className="text-lg font-semibold text-secondary-900">
+              <CardTitle className="text-lg">
                 {announcement.title}
-              </h3>
+              </CardTitle>
             </div>
             
             <div className="flex items-center space-x-4 text-sm text-secondary-600 mb-3">
@@ -266,55 +299,62 @@ function AnnouncementCard({ announcement }: AnnouncementCardProps) {
                 {getTimeAgo(announcement.createdAt)}
               </div>
               {announcement.courseId && (
-                <span className="badge badge-primary">Course-Specific</span>
+                <Badge variant="default">Course-Specific</Badge>
               )}
-            </div>
-
-            <div className="text-secondary-700">
-              {isExpanded ? (
-                <div className="whitespace-pre-wrap">{announcement.content}</div>
-              ) : (
-                <div className="line-clamp-3">{announcement.content}</div>
-              )}
-            </div>
-
-            <div className="mt-4 flex items-center justify-between">
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-              >
-                {isExpanded ? 'Show less' : 'Read more'}
-              </button>
-              
-              <div className="flex items-center space-x-2">
-                <button className="btn btn-ghost btn-sm">
-                  <Eye className="h-4 w-4" />
-                </button>
-                <div className="relative">
-                  <button
-                    onClick={() => setShowActions(!showActions)}
-                    className="btn btn-ghost btn-sm"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
-                  {showActions && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-secondary-200">
-                      <button className="flex items-center w-full px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-50">
-                        <Edit className="h-4 w-4 mr-3" />
-                        Edit
-                      </button>
-                      <button className="flex items-center w-full px-4 py-2 text-sm text-error-700 hover:bg-error-50">
-                        <Trash2 className="h-4 w-4 mr-3" />
-                        Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardHeader>
+
+      <CardContent>
+        <div className="text-secondary-700 mb-4">
+          {isExpanded ? (
+            <div className="whitespace-pre-wrap">{announcement.content}</div>
+          ) : (
+            <div className="line-clamp-3">{announcement.content}</div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-primary-600 hover:text-primary-700"
+          >
+            {isExpanded ? 'Show less' : 'Read more'}
+          </Button>
+          
+          <div className="flex items-center space-x-2">
+            <Link to={`/announcements/${announcement.id}`}>
+              <Button variant="ghost" size="sm">
+                <Eye className="h-4 w-4" />
+              </Button>
+            </Link>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowActions(!showActions)}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+              {showActions && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-secondary-200">
+                  <Button variant="ghost" className="w-full justify-start">
+                    <Edit className="h-4 w-4 mr-3" />
+                    Edit
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-700">
+                    <Trash2 className="h-4 w-4 mr-3" />
+                    Delete
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -3,6 +3,11 @@ import { Search, Filter, Plus, BookOpen, Users, Clock, Award } from 'lucide-reac
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cn } from '@/utils/cn'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { CreateProgrammeModal } from '@/components/CreateProgrammeModal'
 
 // Mock data - in a real app, this would come from an API
 const programmes = [
@@ -45,10 +50,12 @@ const programmes = [
 ]
 
 export function ProgrammesPage() {
+  const [programmesList, setProgrammesList] = useState(programmes)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  const filteredProgrammes = programmes.filter(programme => {
+  const filteredProgrammes = programmesList.filter(programme => {
     const matchesSearch = programme.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          programme.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesFilter = filterStatus === 'all' || 
@@ -56,6 +63,18 @@ export function ProgrammesPage() {
                          (filterStatus === 'inactive' && !programme.isActive)
     return matchesSearch && matchesFilter
   })
+
+  const handleCreateProgramme = (programmeData: any) => {
+    const newProgramme = {
+      id: (programmesList.length + 1).toString(),
+      ...programmeData,
+      students: 0,
+      isActive: true
+    }
+    setProgrammesList(prev => [newProgramme, ...prev])
+    console.log('Programme created:', newProgramme)
+    alert('Programme created successfully!')
+  }
 
   return (
     <div className="space-y-6">
@@ -67,10 +86,10 @@ export function ProgrammesPage() {
           </p>
         </div>
         <div className="mt-4 sm:mt-0">
-          <button className="btn btn-primary btn-md">
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Create Programme
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -79,12 +98,12 @@ export function ProgrammesPage() {
         <div className="flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-secondary-400" />
-            <input
+            <Input
               type="text"
               placeholder="Search programmes..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="input pl-10 w-full"
+              className="pl-10 w-full"
             />
           </div>
         </div>
@@ -92,16 +111,16 @@ export function ProgrammesPage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
-            className="input"
+            className="px-3 py-2 border border-secondary-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">All Programmes</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
-          <button className="btn btn-outline btn-md">
+          <Button variant="outline">
             <Filter className="h-4 w-4 mr-2" />
             Filters
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -113,14 +132,23 @@ export function ProgrammesPage() {
       </div>
 
       {filteredProgrammes.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-secondary-900 mb-2">No programmes found</h3>
-          <p className="text-secondary-600">
-            {searchTerm ? 'Try adjusting your search terms' : 'No programmes available at the moment'}
-          </p>
-        </div>
+        <Card>
+          <CardContent className="text-center py-12">
+            <BookOpen className="h-12 w-12 text-secondary-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-secondary-900 mb-2">No programmes found</h3>
+            <p className="text-secondary-600">
+              {searchTerm ? 'Try adjusting your search terms' : 'No programmes available at the moment'}
+            </p>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Create Programme Modal */}
+      <CreateProgrammeModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreate={handleCreateProgramme}
+      />
     </div>
   )
 }
@@ -142,30 +170,31 @@ interface ProgrammeCardProps {
 
 function ProgrammeCard({ programme }: ProgrammeCardProps) {
   return (
-    <div className="card hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
       <div className="relative">
         <img
           src={programme.image}
           alt={programme.title}
-          className="w-full h-48 object-cover rounded-t-lg"
+          className="w-full h-48 object-cover"
         />
         <div className="absolute top-4 right-4">
-          <span className={cn(
-            'badge',
-            programme.isActive ? 'badge-success' : 'badge-secondary'
+          <Badge className={cn(
+            programme.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
           )}>
             {programme.isActive ? 'Active' : 'Inactive'}
-          </span>
+          </Badge>
         </div>
       </div>
       
-      <div className="card-content">
-        <h3 className="card-title text-lg mb-2">{programme.title}</h3>
-        <p className="text-secondary-600 text-sm mb-4 line-clamp-2">
+      <CardHeader>
+        <CardTitle className="text-lg">{programme.title}</CardTitle>
+        <CardDescription className="line-clamp-2">
           {programme.description}
-        </p>
-        
-        <div className="space-y-2 mb-4">
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
           <div className="flex items-center text-sm text-secondary-600">
             <BookOpen className="h-4 w-4 mr-2" />
             {programme.courses} courses
@@ -180,18 +209,17 @@ function ProgrammeCard({ programme }: ProgrammeCardProps) {
           </div>
         </div>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2">
           <div className="text-sm text-secondary-500">
             Starts {new Date(programme.startDate).toLocaleDateString()}
           </div>
-          <Link
-            to={`/programmes/${programme.id}`}
-            className="btn btn-primary btn-sm"
-          >
-            View Details
+          <Link to={`/programmes/${programme.id}`}>
+            <Button size="sm">
+              View Details
+            </Button>
           </Link>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

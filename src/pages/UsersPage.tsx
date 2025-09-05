@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FilterBar, FilterConfig } from '@/components/ui/FilterBar'
 import { EditUserModal, User } from '@/components/EditUserModal'
-import { Users, Search, Filter, MoreVertical, Mail, Phone, Calendar, Edit, Eye } from 'lucide-react'
+import { ExportModal } from '@/components/ExportModal'
+import { Users, Search, Filter, MoreVertical, Mail, Phone, Calendar, Edit, Eye, Download } from 'lucide-react'
 
 // Mock data for users
 const mockUsers: User[] = [
@@ -77,6 +78,8 @@ export function UsersPage() {
   const [filters, setFilters] = useState<Record<string, any>>({})
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [exportingUser, setExportingUser] = useState<{ id: string; name: string } | null>(null)
 
   // Filter configuration
   const filterConfig: FilterConfig[] = [
@@ -154,6 +157,18 @@ export function UsersPage() {
           : user
       ))
     }
+    setIsEditModalOpen(false)
+    setEditingUser(null)
+  }
+
+  const handleExportUser = (user: User) => {
+    setExportingUser({ id: user.id, name: `${user.firstName} ${user.lastName}` })
+    setIsExportModalOpen(true)
+  }
+
+  const handleBulkExport = () => {
+    setExportingUser(null)
+    setIsExportModalOpen(true)
   }
 
   const getRoleColor = (role: string) => {
@@ -189,10 +204,16 @@ export function UsersPage() {
             Manage users and their access to the platform
           </p>
         </div>
-        <Button>
-          <Users className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={handleBulkExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export All
+          </Button>
+          <Button>
+            <Users className="h-4 w-4 mr-2" />
+            Add User
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -257,10 +278,19 @@ export function UsersPage() {
                   <Edit className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleExportUser(user)}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Export
+                </Button>
                 <Link to={`/users/${user.id}`}>
                   <Button variant="outline" size="sm" className="flex-1">
                     <Eye className="h-4 w-4 mr-1" />
-                    View Profile
+                    View
                   </Button>
                 </Link>
               </div>
@@ -290,6 +320,17 @@ export function UsersPage() {
         }}
         user={editingUser}
         onSave={handleSaveUser}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => {
+          setIsExportModalOpen(false)
+          setExportingUser(null)
+        }}
+        userId={exportingUser?.id}
+        userName={exportingUser?.name}
       />
     </div>
   )

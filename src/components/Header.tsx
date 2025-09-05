@@ -1,19 +1,23 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useNotifications } from '@/contexts/NotificationContext'
 import { User } from '@/types'
 import { Bell, Search, Menu, X, User as UserIcon, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { NotificationCenter } from '@/components/NotificationCenter'
 interface HeaderProps {
   user: User | null
 }
 
 export function Header({ user }: HeaderProps) {
   const { logout } = useAuth()
+  const { unreadCount } = useNotifications()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -55,12 +59,19 @@ export function Header({ user }: HeaderProps) {
           {/* Right side */}
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={() => setIsNotificationCenterOpen(true)}
+            >
               <span className="sr-only">View notifications</span>
               <Bell className="h-6 w-6" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                3
-              </Badge>
+              {unreadCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                  {unreadCount}
+                </Badge>
+              )}
             </Button>
 
             {/* User menu */}
@@ -135,6 +146,12 @@ export function Header({ user }: HeaderProps) {
           </div>
         </div>
       )}
+
+      {/* Notification Center */}
+      <NotificationCenter
+        isOpen={isNotificationCenterOpen}
+        onClose={() => setIsNotificationCenterOpen(false)}
+      />
     </header>
   )
 }

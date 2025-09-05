@@ -26,7 +26,7 @@ export interface CourseUploadData {
   maxStudents: number
   startDate: string
   endDate: string
-  thumbnail?: File
+  coverImage?: File
   files: File[]
   tags: string[]
 }
@@ -66,6 +66,7 @@ export function UploadCourseModal({ isOpen, onClose, onUpload }: UploadCourseMod
     maxStudents: 50,
     startDate: '',
     endDate: '',
+    coverImage: undefined,
     files: [],
     tags: []
   })
@@ -86,6 +87,7 @@ export function UploadCourseModal({ isOpen, onClose, onUpload }: UploadCourseMod
         maxStudents: 50,
         startDate: '',
         endDate: '',
+        coverImage: undefined,
         files: [],
         tags: []
       })
@@ -380,6 +382,62 @@ export function UploadCourseModal({ isOpen, onClose, onUpload }: UploadCourseMod
                   onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value) || 50)}
                   className="w-32"
                 />
+              </div>
+            </div>
+
+            {/* Cover Image Upload */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-secondary-900">Course Cover Image</h3>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  {formData.coverImage ? (
+                    <div className="relative">
+                      <img
+                        src={URL.createObjectURL(formData.coverImage)}
+                        alt="Cover preview"
+                        className="w-32 h-20 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleInputChange('coverImage', undefined)}
+                        className="absolute -top-2 -right-2 h-6 w-6 p-0 bg-red-500 text-white hover:bg-red-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-32 h-20 border-2 border-dashed border-secondary-300 rounded-lg flex items-center justify-center">
+                      <Image className="h-8 w-8 text-secondary-400" />
+                    </div>
+                  )}
+                  
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          handleInputChange('coverImage', file)
+                        }
+                      }}
+                      className="hidden"
+                      id="cover-image-upload"
+                    />
+                    <label
+                      htmlFor="cover-image-upload"
+                      className="inline-block px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 cursor-pointer"
+                    >
+                      {formData.coverImage ? 'Change Cover Image' : 'Upload Cover Image'}
+                    </label>
+                    <p className="text-xs text-secondary-500 mt-1">
+                      Recommended: 16:9 aspect ratio, max 5MB
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
